@@ -3,7 +3,6 @@ package com.bignerdranch.android.criminalintent
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import androidx.room.Update
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -27,6 +26,12 @@ class CrimeDetailViewModel(crimeId: UUID) : ViewModel(){
         _crime.update { oldCrime ->
             oldCrime?.let { onUpdate(it) }
         }
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+
+        crime.value?.let { crimeRepository.updateCrime(it) }
     }
 }
 
