@@ -8,6 +8,8 @@ import android.view.MenuInflater
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
+import android.widget.LinearLayout
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
@@ -29,6 +31,8 @@ class CrimeListFragment : Fragment(){
             "Cannot access binding because it is null. Is the view visible?"
         }
     private val crimeListViewModel: CrimeListViewModel by viewModels()
+    private lateinit var emptyView: LinearLayout
+    private lateinit var addCrimeButton: Button
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -43,6 +47,14 @@ class CrimeListFragment : Fragment(){
         _binding = FragmentCrimeListBinding.inflate(inflater, container, false)
         binding.crimeRecyclerView.layoutManager = LinearLayoutManager(context)
 
+        emptyView = binding.emptyView
+        addCrimeButton = binding.addCrimeButton
+
+        // Set the OnClickListener for the button
+        addCrimeButton.setOnClickListener {
+            showNewCrime()
+        }
+
         return binding.root
     }
 
@@ -52,10 +64,19 @@ class CrimeListFragment : Fragment(){
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 crimeListViewModel.crimes.collect { crimes ->
-                    binding.crimeRecyclerView.adapter = CrimeListAdapter(crimes) { crimeId ->
+                    val adapter = CrimeListAdapter(crimes) { crimeId ->
                         findNavController().navigate(
                             CrimeListFragmentDirections.showCrimeDetail(crimeId)
                         )
+                    }
+                    binding.crimeRecyclerView.adapter = adapter
+
+                    if (adapter.itemCount == 0) {
+                        binding.crimeRecyclerView.visibility = View.GONE
+                        emptyView.visibility = View.VISIBLE
+                    } else {
+                        binding.crimeRecyclerView.visibility = View.VISIBLE
+                        emptyView.visibility = View.GONE
                     }
                 }
             }
